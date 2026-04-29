@@ -24,7 +24,7 @@
                 password: int,
                 nonce: int
             ],
-            returns: [r: int],
+            returns: [token: int],
             SLA: {
                 latency: n1,
                 cost: n2
@@ -44,11 +44,11 @@
                 succ = True,
                 verify(userId, password),
                 attempts(userId) = 0,
-                r = token(userId, nonce)
+                token = token(userId, nonce)
             ],
             err-postcond: [
                 succ = False
-                r = err,
+                token = err,
             ],
         },
 
@@ -111,7 +111,7 @@
 
             err-postcond: [
                 succ = False,
-                price = -1   // sentinel error integer
+                price = err
             ]
         }
     ]
