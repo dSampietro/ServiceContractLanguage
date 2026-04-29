@@ -1,10 +1,6 @@
 //assumption: for now assume explicit typing hints
+//assumption: everything is stateless
 {
-    state: {
-        budget: int,
-        session: ???        //should be Set<int>; extend Soteria Value module? 
-    },
-
     globals: {
         MAX_ATTEMPTS: int
     },
@@ -64,17 +60,12 @@
                 r = err,
                 attempts(userId) = attempts(userId) + 1
             ],
-
-            modify: [
-                session := add(session, user),
-                budget := budget - QoS.cost       
-            ],
         },
 
         {
             name: "Pay",
             params: [
-                "amt": int,
+                amt: int,
             ],
             returns: [r: Outcome],  //ass: Outcome = {Ok, Err} 
             SLA: {
@@ -99,8 +90,6 @@
                 succ = False
                 r = err,
             ],
-
-            modify: [budget := budget - amt - QoS.cost],    //assumptions: modify happens only if succ=True
         }
     ]
 }
