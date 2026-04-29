@@ -80,6 +80,39 @@
                 succ = False
                 r = err,
             ],
+        },
+
+        {
+            name: "GetPrice",
+            params: [
+                productId: int
+            ],
+
+            returns: [price: int],
+
+            SLA: {
+                latency: n5,
+                cost: n6
+            },
+
+            precond: [
+                wellFormed(productId)
+            ],
+
+            QoS: [
+                latency <= SLA.latency,
+                cost >= 0
+            ],
+
+            ok-postcond: [
+                succ = True,
+                price > 0
+            ],
+
+            err-postcond: [
+                succ = False,
+                price = -1   // sentinel error integer
+            ]
         }
     ]
 }
