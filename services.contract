@@ -1,9 +1,7 @@
 //assumption: for now assume explicit typing hints
 //assumption: everything is stateless
 {
-    globals: {
-        MAX_ATTEMPTS: int
-    },
+    globals: { },
 
     functions: {        //funcs of type: * -> int
         attempts: int -> int,
@@ -51,7 +49,6 @@
             err-postcond: [
                 succ = False
                 r = err,
-                attempts(userId) = attempts(userId) + 1
             ],
         },
 
