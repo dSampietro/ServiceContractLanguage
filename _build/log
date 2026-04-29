@@ -1,0 +1,6 @@
+# dune init project ServiceConfig
+# OCAMLPARAM: unset
+# Shared cache: disabled
+# Shared cache location: /home/dan/.cache/dune/db
+# Workspace root: "/home/dan/Universit\195\160/Info/5/LIS/ServiceConfig"
+# Auto-detected concurrency: 8
