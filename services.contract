@@ -12,13 +12,6 @@
         PayFee: int -> int
     }
 
-    predicates: {       //preds of type: * -> bool
-        wellFormed: int -> bool, 
-        fresh: int -> bool,
-        locked: int -> bool,
-        verify: int -> int -> bool
-    }
-
     //assumption: QoS attributes are fixed; every service SLA must specify them
     QoS: {      
         latency: int, 
