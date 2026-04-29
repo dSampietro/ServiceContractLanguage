@@ -1,0 +1,106 @@
+//assumption: for now assume explicit typing hints
+{
+    state: {
+        budget: int,
+        session: ???        //should be Set<int>; extend Soteria Value module? 
+    },
+
+    globals: {
+        MAX_ATTEMPTS: int
+    },
+
+    functions: {        //funcs of type: * -> int
+        attempts: int -> int,
+        AuthFee: int -> int,
+        token: int -> int -> int,
+        PayFee: int -> int
+    }
+
+    predicates: {       //preds of type: * -> bool
+        wellFormed: int -> bool, 
+        fresh: int -> bool,
+        locked: int -> bool,
+        verify: int -> int -> bool
+    }
+
+    //assumption: QoS attributes are fixed; every service SLA must specify them
+    QoS: {      
+        latency: int, 
+        cost: int
+    }, 
+
+    services: [
+        {
+            name: "Auth",
+            params: [
+                userId: int,
+                password: int,
+                nonce: int
+            ],
+            returns: [r: int],
+            SLA: {
+                latency: n1,
+                cost: n2
+            },
+            precond: [
+                wellFormed(userId),
+                wellFormed(password),
+                fresh(nonce),
+                !locked(userId),
+                attempts(userId) < MAX_ATTEMPTS
+            ],
+            QoS: [
+                latency <= SLA.latency,
+                cost = AuthFee(userId)
+            ],
+            ok-postcond: [
+                succ = True,
+                verify(userId, password),
+                attempts(userId) = 0,
+                r = token(userId, nonce)
+            ],
+            err-postcond: [
+                succ = False
+                r = err,
+                attempts(userId) = attempts(userId) + 1
+            ],
+
+            modify: [
+                session := add(session, user),
+                budget := budget - QoS.cost       
+            ],
+        },
+
+        {
+            name: "Pay",
+            params: [
+                "amt": int,
+            ],
+            returns: [r: Outcome],  //ass: Outcome = {Ok, Err} 
+            SLA: {
+                latency: n3,
+                cost: n4
+            },
+
+            precond: [
+                amt > 0,
+            ],
+
+            QoS: [
+                latency > 0,
+                cost = PayFee(amt)
+            ],
+
+            ok-postcond: [
+                succ = True,
+                r = ok,
+            ],
+            err-postcond: [
+                succ = False
+                r = err,
+            ],
+
+            modify: [budget := budget - amt - QoS.cost],    //assumptions: modify happens only if succ=True
+        }
+    ]
+}
