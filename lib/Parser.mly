@@ -12,6 +12,13 @@
 %token <bool> BOOL
 %token <string> VAR
 
+%left AND
+%left ASSIGN
+%left MINOR MINOR_EQ
+%left PLUS MINUS
+%left TIMES
+%right NOT
+
 %start <Lang.program> prg
 
 %%
@@ -132,12 +139,16 @@ exprs:
     | e=expr COMMA rest=exprs { e :: rest }
 
 atom:
-    | n=INT                           {EInt(n)}
-    | b=BOOL                          {EBool(b)}
-    | v=VAR                           {EVar(v)}
+    | n=INT                         {EInt(n)}
+    | b=BOOL                        {EBool(b)}
+    | v=VAR                         {EVar(v)}
+
+ident:
+    | id=VAR                        {id}
 
 expr:
-    | id=atom args=exprs            {EApp(id, args)}
+    | a=atom                        {a}
+    | id=ident OPEN_PAR args=exprs CLOSE_PAR           {EApp(id, args)}
     | e1=expr PLUS e2=expr          {EBinOp(Add,e1,e2)}
     | e1=expr MINUS e2=expr         {EBinOp(Sub,e1,e2)}
     | e1=expr TIMES e2=expr         {EBinOp(Mul,e1,e2)}
