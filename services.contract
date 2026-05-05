@@ -6,12 +6,12 @@
         AuthFee: int -> int,
         token: int -> int -> int,
         PayFee: int -> int
-    ]
+    ],
 
-    QoS: {      
+    QoS: [      
         latency: int, 
         cost: int
-    }, 
+    ], 
 
     services: [
         {

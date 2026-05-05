@@ -29,6 +29,11 @@ type expr =
 type global = ident * typ
 
 (* QoS *)
+type qos_def = {
+        qos_latency : typ;
+        qos_cost : typ;
+}
+
 type qos_attr =
     | Latency of expr
     | Cost of expr
@@ -72,5 +77,6 @@ type func_sig = {
 type program = {
     globals: global list;
     functions: func_sig list;
+    qos: qos_def;
     services: service list;
 }

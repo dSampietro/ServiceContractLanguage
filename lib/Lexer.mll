@@ -34,13 +34,14 @@ rule read = parse
 | "globals"         {GLOBALS}
 | "functions"       {FUNCTIONS}  
 | "QoS"             {QOS}
+| "latency"         {LATENCY}
+| "cost"            {COST}
 | "services"        {SERVICES}  
 | "name"            {NAME}
 | "params"          {PARAMS}
 | "returns"         {RETURNS}
 | "SLA"             {SLA}
 | "precond"         {PRECOND}
-| "QoS"             {QOS}
 | "ok-postcond"     {OK_POSTCOND}  
 | "err-postcond"    {ERR_POSTCOND}
 

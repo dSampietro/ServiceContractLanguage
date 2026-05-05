@@ -3,10 +3,11 @@
 %}
 
 (* tokens *)
-%token COLON ARROW ASSIGN COMMA EOF
+%token COLON ARROW ASSIGN COMMA EOF 
 %token PLUS MINUS TIMES MINOR_EQ MINOR NOT AND
 %token OPEN_PAR CLOSE_PAR OPEN_LIST CLOSE_LIST LBRACE RBRACE
 %token GLOBALS FUNCTIONS QOS SERVICES NAME PARAMS RETURNS SLA PRECOND OK_POSTCOND ERR_POSTCOND 
+%token LATENCY COST
 
 %token <int> INT
 %token <bool> BOOL
@@ -27,11 +28,12 @@ prg:
     | LBRACE 
         GLOBALS   COLON  g=globals     COMMA
         FUNCTIONS COLON  f=functions   COMMA
+        QOS       COLON  qos=qos_def   COMMA
         SERVICES  COLON  s=services  
       RBRACE EOF
 
     {
-        {globals = g; functions = f; services = s}
+        {globals = g; functions = f; qos = qos; services = s}
     }
 
 (* ---------- GLOBALS ---------- *)
@@ -61,6 +63,15 @@ func_item:
 fun_type:
     | t1=typ ARROW t2=fun_type       {TArrow(t1, t2)}
     | t=typ                         {TBase(t)}
+
+(* ---------- QOS Def---------- *)
+(* TODO: make it extensible *)
+qos_def:
+    | OPEN_LIST  
+            LATENCY COLON t1=typ  COMMA     
+            COST    COLON t2=typ         
+        CLOSE_LIST 
+        { {qos_latency = t1; qos_cost = t2} }
 
 
 (* ---------- SERVICES ---------- *)
