@@ -1,5 +1,5 @@
 {
-    open MfParser
+    open Parser
     exception LexingError of string
 }
 
@@ -11,6 +11,7 @@ let id = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
 
 rule read = parse
 | ":"       {COLON}
+| ","       {COMMA}
 | "->"      {ARROW}
 | "+"       {PLUS}
 | "-"       {MINUS}
