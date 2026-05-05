@@ -1,2 +1,6 @@
 (library
- (name ServiceConfig))
+ (name lib)
+)
+
+(ocamllex Lexer)
+(menhir (modules Parser))

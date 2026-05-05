@@ -1,4 +1,4 @@
 (executable
  (public_name ServiceConfig)
  (name main)
- (libraries ServiceConfig))
+ (libraries lib))
