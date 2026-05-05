@@ -3,10 +3,10 @@
 %}
 
 (* tokens *)
-%token COLON ARROW ASSIGN
+%token COLON ARROW ASSIGN COMMA EOF
 %token PLUS MINUS TIMES MINOR_EQ MINOR NOT AND
 %token OPEN_PAR CLOSE_PAR OPEN_LIST CLOSE_LIST LBRACE RBRACE
-%token GLOBALS FUNCTIONS QOS SERVICES NAME PARAMS RETURNS SLA PRECOND QOA OK_POSTCOND ERR_POSTCOND 
+%token GLOBALS FUNCTIONS QOS SERVICES NAME PARAMS RETURNS SLA PRECOND OK_POSTCOND ERR_POSTCOND 
 
 %token <int> INT
 %token <bool> BOOL
@@ -18,10 +18,10 @@
 
 prg:
     | LBRACE 
-        GLOBALS g=globals
-        FUNCTIONS f=functions
-        SERVICES s
-    RBRACE EOF
+        GLOBALS g=globals COMMA
+        FUNCTIONS f=functions COMMA
+        SERVICES s=services
+      RBRACE EOF
 
     {
         {globals = g; functions = f; services = s}
@@ -33,7 +33,7 @@ globals:
 
 global_list:
     | /* empty */ { [] }
-    | OPEN_PAR id=VAR COLON t=typ CLOSE_PAR rest=global_list  {(id,t)::rest}
+    |  id=VAR COLON t=typ COMMA rest=global_list  {(id,t)::rest}
 
 
 (* ---------- FUNCTIONS ---------- *)
@@ -43,7 +43,7 @@ functions:
 
 func_list:
     | /* empty */ { [] }
-    | OPEN_PAR id=VAR COLON ft=fun_type CLOSE_PAR rest=func_list
+    | OPEN_PAR id=VAR COLON ft=fun_type CLOSE_PAR COMMA rest=func_list
     {
       let (args,ret) = ft in
       { fname=id; args=args; ret=ret } :: rest
@@ -54,7 +54,7 @@ fun_type:
 
 typ_list:
     | typ               {[$1]}
-    | typ ts=typ_list   {$1 :: ts}
+    | typ COMMA ts=typ_list   {$1 :: ts}
 
 
 (* ---------- SERVICES ---------- *)
@@ -64,19 +64,19 @@ services:
 
 service_list:
     | /* empty */                   {[]}
-    | s=service rest=service_list   {s :: rest}
+    | s=service COMMA rest=service_list   {s :: rest}
 
 service:
-    | OPEN_BRACE
+    | LBRACE
         NAME n=VAR
         PARAMS ps=params
         RETURNS rs=returns
         SLA sl=sla
         PRECOND pre=expr_list
-        QOA qos=qos_list
+        QOS qos=qos_list
         OK_POSTCOND ok=expr_list
         ERR_POSTCOND err=expr_list
-      CLOSE_BRACE
+      RBRACE
     
     {
       {
@@ -96,20 +96,21 @@ params:
 
 param_list:
     | /* empty */ { [] }
-    | id=VAR COLON t=typ rest=param_list  { (id,t)::rest }
+    | id=VAR COLON t=typ COMMA rest=param_list  { (id,t)::rest }
+
 
 returns:
     | OPEN_LIST rs=ret_list CLOSE_LIST { rs }
 
 ret_list:
     | /* empty */ { [] }
-    | id=VAR COLON t=typ rest=ret_list   {(id,t)::rest}
+    | id=VAR COLON t=typ COMMA rest=ret_list   {(id,t)::rest}
 
 sla:
-    | OPEN_BRACE
-        VAR e1=expr
-        VAR e2=expr
-      CLOSE_BRACE
+    | LBRACE
+        VAR COLON e1=expr COMMA
+        VAR COLON e2=expr
+      RBRACE
       { {sla_latency = e1; sla_cost = e2} }
 
 
@@ -119,25 +120,24 @@ qos_list:
 
 qos_elems:
   | /* empty */ { [] }
-  | e=expr rest=qos_elems
-    {(Latency e) :: rest}
+  | e=expr COMMA rest=qos_elems    {(Latency e) :: rest}
 
 
 (* ---------- EXPRESSIONS (prefix style) ---------- *)
-
 expr_list:
     | OPEN_LIST es=exprs CLOSE_LIST { es }
 
 exprs:
     | /* empty */ { [] }
-    | e=expr rest=exprs { e :: rest }
+    | e=expr COMMA rest=exprs { e :: rest }
+
+atom:
+    | n=INT                           {EInt(n)}
+    | b=BOOL                          {EBool(b)}
+    | v=VAR                           {EVar(v)}
 
 expr:
-    | INT                           {EInt $1}
-    | BOOL                          {EBool $1}
-    | VAR                           {EVar $1}
-
-    | VAR args=exprs                {EApp($2, args)}
+    | id=atom args=exprs            {EApp(id, args)}
     | e1=expr PLUS e2=expr          {EBinOp(Add,e1,e2)}
     | e1=expr MINUS e2=expr         {EBinOp(Sub,e1,e2)}
     | e1=expr TIMES e2=expr         {EBinOp(Mul,e1,e2)}
