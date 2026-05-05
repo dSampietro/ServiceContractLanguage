@@ -1,4 +1,3 @@
-type ident = string
 
 type typ = 
     | TInt
@@ -17,6 +16,7 @@ type binop =
 type unop =
     | Not
 
+type ident = string
 
 type expr = 
     | EInt of int
