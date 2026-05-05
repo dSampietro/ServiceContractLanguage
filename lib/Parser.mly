@@ -25,9 +25,9 @@
 
 prg:
     | LBRACE 
-        GLOBALS g=globals COMMA
-        FUNCTIONS f=functions COMMA
-        SERVICES s=services
+        GLOBALS   COLON  g=globals     COMMA
+        FUNCTIONS COLON  f=functions   COMMA
+        SERVICES  COLON  s=services  
       RBRACE EOF
 
     {
@@ -44,28 +44,34 @@ global_list:
 
 
 (* ---------- FUNCTIONS ---------- *)
-
 functions:
-  | OPEN_LIST fs=func_list CLOSE_LIST { fs }
+  | OPEN_LIST fs=func_list CLOSE_LIST   {fs}
 
 func_list:
     | /* empty */ { [] }
-    | OPEN_PAR id=VAR COLON ft=fun_type CLOSE_PAR COMMA rest=func_list
+    | f=func_item rest=func_tail  {f :: rest}
+
+func_tail:
+    | /* empty */ { [] }
+    | COMMA f=func_item rest=func_tail  {f :: rest}
+
+func_item:
+    | id=VAR COLON ft=fun_type
     {
       let (args,ret) = ft in
-      { fname=id; args=args; ret=ret } :: rest
+      { fname=id; args=args; ret=ret }
     }
 
 fun_type:
-    | OPEN_PAR ts=typ_list ARROW t=typ CLOSE_PAR { (ts,t) }
+    | ts=typ_list ARROW t=typ { (ts,t) }
 
 typ_list:
     | typ               {[$1]}
-    | typ COMMA ts=typ_list   {$1 :: ts}
+    | typ ARROW ts=typ_list   {$1 :: ts}
+
 
 
 (* ---------- SERVICES ---------- *)
-
 services:
     | OPEN_LIST ss=service_list CLOSE_LIST { ss }
 
