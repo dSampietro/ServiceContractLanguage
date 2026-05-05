@@ -19,6 +19,7 @@ let parse_with_error lexbuf =
 *)
 
 let () =
+    Printf.printf "ServiceConfig Parser - OCaml version\n";
   if Array.length Sys.argv < 2 then begin
     Printf.eprintf "Usage: %s <input-file>\n" Sys.argv.(0);
     exit 1
