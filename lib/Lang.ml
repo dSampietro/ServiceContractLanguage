@@ -60,10 +60,13 @@ type service = {
 }
 
 (* Function signatures: * -> int *)
+type funtype = 
+    | TArrow of typ * funtype
+    | TBase of typ
+
 type func_sig = {
     fname : ident;
-    args : typ list;
-    ret : typ;
+    ty : funtype;
 }
 
 type program = {

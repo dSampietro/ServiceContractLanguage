@@ -56,19 +56,11 @@ func_tail:
     | COMMA f=func_item rest=func_tail  {f :: rest}
 
 func_item:
-    | id=VAR COLON ft=fun_type
-    {
-      let (args,ret) = ft in
-      { fname=id; args=args; ret=ret }
-    }
+    | id=VAR COLON ft=fun_type      { {fname=id; ty=ft} }
 
 fun_type:
-    | ts=typ_list ARROW t=typ { (ts,t) }
-
-typ_list:
-    | typ               {[$1]}
-    | typ ARROW ts=typ_list   {$1 :: ts}
-
+    | t1=typ ARROW t2=fun_type       {TArrow(t1, t2)}
+    | t=typ                         {TBase(t)}
 
 
 (* ---------- SERVICES ---------- *)
