@@ -35,7 +35,7 @@ let () =
   let lexbuf = Lexing.from_channel input_file in
   
   try
-    let ast = (Parser.program Lexer.read lexbuf) in
+    let _ast = (Parser.program Lexer.read lexbuf) in
     close_in input_file
   with
     | Parser.Error ->
@@ -55,5 +55,3 @@ let () =
 
     | exn -> close_in input_file; Printf.eprintf "Unexpected error: %s\n" (Printexc.to_string exn);
     
-
-  close_in input_file
