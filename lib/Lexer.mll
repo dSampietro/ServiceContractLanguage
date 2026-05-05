@@ -40,7 +40,7 @@ rule read = parse
 | "returns"         {RETURNS}
 | "SLA"             {SLA}
 | "precond"         {PRECOND}
-| "QoS"             {QOA}
+| "QoS"             {QOS}
 | "ok-postcond"     {OK_POSTCOND}  
 | "err-postcond"    {ERR_POSTCOND}
 
