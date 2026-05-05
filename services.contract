@@ -1,16 +1,13 @@
-//assumption: for now assume explicit typing hints
-//assumption: everything is stateless
 {
-    globals: { },
+    globals: [],
 
-    functions: {        //funcs of type: * -> int
+    functions: [
         attempts: int -> int,
         AuthFee: int -> int,
         token: int -> int -> int,
         PayFee: int -> int
-    }
+    ]
 
-    //assumption: QoS attributes are fixed; every service SLA must specify them
     QoS: {      
         latency: int, 
         cost: int
@@ -57,7 +54,7 @@
             params: [
                 amt: int,
             ],
-            returns: [r: Outcome],  //ass: Outcome = {Ok, Err} 
+            returns: [r: Outcome], 
             SLA: {
                 latency: n3,
                 cost: n4
