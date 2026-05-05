@@ -19,9 +19,9 @@ let parse_with_error lexbuf =
 *)
 
 let () =
-    Printf.printf "ServiceConfig Parser - OCaml version\n";
+  Printf.printf "ServiceConfig Parser - OCaml version\n";
   if Array.length Sys.argv < 2 then begin
-    Printf.eprintf "Usage: %s <input-file>\n" Sys.argv.(0);
+    Printf.eprintf "A config file is needed\n";
     exit 1
   end;
 
@@ -36,23 +36,19 @@ let () =
   let lexbuf = Lexing.from_channel input_file in
   
   try
-    let _ast = (Parser.program Lexer.read lexbuf) in
+    let _ast = (Lib.Parser.prg Lib.Lexer.read lexbuf) in
+    Printf.printf "Parse successful\n";
     close_in input_file
   with
-    | Parser.Error ->
-      close_in input_file;
-      let pos = lexbuf.lex_curr_p in
-      Printf.eprintf "Parse error at line %d, column %d: unexpected token\n"
-        pos.pos_lnum
-        (pos.pos_cnum - pos.pos_bol + 1);
-      exit 1
-
-    | Parsing.Parse_error ->
+    | Lib.Parser.Error ->
         close_in input_file;
         let pos = lexbuf.lex_curr_p in
-        Printf.eprintf "Parse error at line %d, column %d\n"
+        let token = Lexing.lexeme lexbuf in
+        Printf.eprintf "Parse error at line %d, column %d: unexpected token '%s'\n"
           pos.pos_lnum
           (pos.pos_cnum - pos.pos_bol + 1)
+          token;
+        exit 1
 
     | exn -> close_in input_file; Printf.eprintf "Unexpected error: %s\n" (Printexc.to_string exn);
     
