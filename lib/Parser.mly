@@ -3,7 +3,7 @@
 %}
 
 (* tokens *)
-%token COLON ARROW DOT ASSIGN COMMA EOF 
+%token COLON ARROW DOT EQ COMMA EOF 
 %token PLUS MINUS TIMES LE LT GE GT NOT AND
 %token OPEN_PAR CLOSE_PAR OPEN_LIST CLOSE_LIST LBRACE RBRACE
 %token GLOBALS FUNCTIONS QOS SERVICES NAME PARAMS RETURNS SLA PRECOND OK_POSTCOND ERR_POSTCOND 
@@ -12,13 +12,13 @@
 %token <bool> BOOL
 %token <string> VAR
 
-%left DOT
 %left AND
-%left ASSIGN
+%left EQ
 %left LT LE GT GE
 %left PLUS MINUS
 %left TIMES
 %right NOT
+%left DOT
 
 %start <Lang.program> prg
 
@@ -38,24 +38,15 @@ prg:
 
 (* ---------- GLOBALS ---------- *)
 globals:
-    | OPEN_LIST gs=global_list CLOSE_LIST   {gs}
+    | OPEN_LIST gs=separated_list(COMMA, global_item) CLOSE_LIST   {gs}
 
-global_list:
-    | /* empty */ { [] }
-    |  id=VAR COLON t=typ COMMA rest=global_list  {(id,t)::rest}
+global_item:
+    |  id=VAR COLON t=typ  {(id,t)}
 
 
 (* ---------- FUNCTIONS ---------- *)
 functions:
-  | OPEN_LIST fs=func_list CLOSE_LIST   {fs}
-
-func_list:
-    | /* empty */ { [] }
-    | f=func_item rest=func_tail  {f :: rest}
-
-func_tail:
-    | /* empty */ { [] }
-    | COMMA f=func_item rest=func_tail  {f :: rest}
+  | OPEN_LIST fs=separated_list(COMMA, func_item) CLOSE_LIST   {fs}
 
 func_item:
     | id=VAR COLON ft=fun_type      { {fname=id; ty=ft} }
@@ -65,7 +56,6 @@ fun_type:
     | t=typ                         {TBase(t)}
 
 (* ---------- QOS Def---------- *)
-(* TODO: make it extensible *)
 qos_def:
     | OPEN_LIST qs=separated_list(COMMA, qos_decl) CLOSE_LIST {qs}
     
@@ -77,11 +67,6 @@ qos_decl:
 services:
     | OPEN_LIST ss=separated_list(COMMA, service) CLOSE_LIST { ss }
 
-(*
-service_list:
-    | /* empty */                   {[]}
-    | s=service COMMA rest=service_list   {s :: rest}
-*)
 
 service:
     | LBRACE
@@ -109,15 +94,7 @@ service:
     }
 
 params:
-    | OPEN_LIST ps=param_list CLOSE_LIST { ps }
-
-param_list:
-    | /* empty */ { [] }
-    | p=param rest=param_tail  { p :: rest }
-
-param_tail:
-  | /* empty */ { [] }
-  | COMMA p=param rest=param_tail { p :: rest }
+    | OPEN_LIST p=separated_list(COMMA, param) CLOSE_LIST { p }
 
 param:
   | id=VAR COLON t=typ { (id, t) }
@@ -125,19 +102,12 @@ param:
 
 
 returns:
-    | OPEN_LIST rs=ret_list CLOSE_LIST { rs }
+    | OPEN_LIST r=separated_list(COMMA, return_item) CLOSE_LIST { r }
 
-ret_list:
-    | /* empty */ { [] }
-    | r=return rest=ret_tail   {r::rest}
-
-ret_tail:
-    | /* empty */ { [] }
-    | COMMA r=return rest=ret_tail   {r::rest}
-return:
+return_item:
     | id=VAR COLON t=typ { (id, t) }
 
-(*TODO: unify SLA and QOS+*)
+
 sla:
     | OPEN_LIST assigns=separated_list(COMMA, assign) CLOSE_LIST  {assigns}
 
@@ -157,12 +127,8 @@ expr_list:
     | OPEN_LIST es=exprs CLOSE_LIST { es }
 
 exprs:
-  | /* empty */ { [] }
-  | e=expr rest=exprs_tail { e :: rest }
+  | es=separated_list(COMMA, expr) { es }
 
-exprs_tail:
-  | /* empty */ { [] }
-  | COMMA e=expr rest=exprs_tail { e :: rest }
 
 atom:
     | n=INT                         {EInt(n)}
@@ -182,7 +148,7 @@ expr:
     | e1=expr GT e2=expr            {EBinOp(Gt,e1,e2)}
     | e1=expr GE e2=expr            {EBinOp(Ge,e1,e2)}
     | e1=expr AND e2=expr           {EBinOp(And,e1,e2)}
-    | e1=expr ASSIGN e2=expr        {EBinOp(Eq,e1,e2)}
+    | e1=expr EQ e2=expr        {EBinOp(Eq,e1,e2)}
     | NOT e=expr                    {EUnOp(Not,e)}
 
 
