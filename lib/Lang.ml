@@ -22,6 +22,8 @@ type expr =
     | EInt of int
     | EBool of bool
     | EVar of ident
+    | ESla
+    | EField of expr * ident
     | EApp of ident * expr list
     | EBinOp of binop * expr * expr
     | EUnOp of unop * expr    
@@ -29,22 +31,17 @@ type expr =
 type global = ident * typ
 
 (* QoS *)
-type qos_def = {
-        qos_latency : typ;
-        qos_cost : typ;
-}
+type qos_def = (ident * typ) list
 
-type qos_attr =
+(*type qos_attr =
     | Latency of expr
     | Cost of expr
+*)
 
-type qos = qos_attr list
+type qos_constraint = expr list
 
 (* SLA *)
-type sla = {
-    sla_latency : expr;
-    sla_cost : expr;
-}
+type sla = (ident * expr) list
 
 (* Parameters and returns *)
 type param = ident * typ
@@ -59,7 +56,7 @@ type service = {
     returns : ret list;
     sla : sla;
     precond : condition list;
-    qos : qos;
+    qos : qos_constraint;
     ok_post : condition list;
     err_post : condition list;
 }

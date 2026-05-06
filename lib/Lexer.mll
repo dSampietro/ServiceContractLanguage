@@ -12,12 +12,15 @@ let id = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
 rule read = parse
 | ":"       {COLON}
 | ","       {COMMA}
+| "."       {DOT}
 | "->"      {ARROW}
 | "+"       {PLUS}
 | "-"       {MINUS}
 | "*"       {TIMES}
-| "<="      {MINOR_EQ}
-| "<"       {MINOR}
+| "<="      {LE}
+| "<"       {LT}
+| ">="      {GE}
+| ">"       {GT}
 | "!"       {NOT}
 | "and"     {AND}
 | "="       {ASSIGN}
@@ -34,8 +37,8 @@ rule read = parse
 | "globals"         {GLOBALS}
 | "functions"       {FUNCTIONS}  
 | "QoS"             {QOS}
-| "latency"         {LATENCY}
-| "cost"            {COST}
+(*| "latency"         {LATENCY}
+| "cost"            {COST}*)
 | "services"        {SERVICES}  
 | "name"            {NAME}
 | "params"          {PARAMS}

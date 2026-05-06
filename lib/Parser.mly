@@ -3,19 +3,19 @@
 %}
 
 (* tokens *)
-%token COLON ARROW ASSIGN COMMA EOF 
-%token PLUS MINUS TIMES MINOR_EQ MINOR NOT AND
+%token COLON ARROW DOT ASSIGN COMMA EOF 
+%token PLUS MINUS TIMES LE LT GE GT NOT AND
 %token OPEN_PAR CLOSE_PAR OPEN_LIST CLOSE_LIST LBRACE RBRACE
 %token GLOBALS FUNCTIONS QOS SERVICES NAME PARAMS RETURNS SLA PRECOND OK_POSTCOND ERR_POSTCOND 
-%token LATENCY COST
 
 %token <int> INT
 %token <bool> BOOL
 %token <string> VAR
 
+%left DOT
 %left AND
 %left ASSIGN
-%left MINOR MINOR_EQ
+%left LT LE GT GE
 %left PLUS MINUS
 %left TIMES
 %right NOT
@@ -61,37 +61,38 @@ func_item:
     | id=VAR COLON ft=fun_type      { {fname=id; ty=ft} }
 
 fun_type:
-    | t1=typ ARROW t2=fun_type       {TArrow(t1, t2)}
+    | t1=typ ARROW t2=fun_type      {TArrow(t1, t2)}
     | t=typ                         {TBase(t)}
 
 (* ---------- QOS Def---------- *)
 (* TODO: make it extensible *)
 qos_def:
-    | OPEN_LIST  
-            LATENCY COLON t1=typ  COMMA     
-            COST    COLON t2=typ         
-        CLOSE_LIST 
-        { {qos_latency = t1; qos_cost = t2} }
+    | OPEN_LIST qs=separated_list(COMMA, qos_decl) CLOSE_LIST {qs}
+    
+qos_decl:
+    | id=VAR COLON t=typ    {(id, t)}
 
 
 (* ---------- SERVICES ---------- *)
 services:
-    | OPEN_LIST ss=service_list CLOSE_LIST { ss }
+    | OPEN_LIST ss=separated_list(COMMA, service) CLOSE_LIST { ss }
 
+(*
 service_list:
     | /* empty */                   {[]}
     | s=service COMMA rest=service_list   {s :: rest}
+*)
 
 service:
     | LBRACE
-        NAME n=VAR
-        PARAMS ps=params
-        RETURNS rs=returns
-        SLA sl=sla
-        PRECOND pre=expr_list
-        QOS qos=qos_list
-        OK_POSTCOND ok=expr_list
-        ERR_POSTCOND err=expr_list
+        NAME         COLON   n=VAR            COMMA
+        PARAMS       COLON   ps=params        COMMA
+        RETURNS      COLON   rs=returns       COMMA
+        SLA          COLON   sl=sla           COMMA
+        PRECOND      COLON   pre=expr_list    COMMA
+        QOS          COLON   qos=qos_constr   COMMA
+        OK_POSTCOND  COLON   ok=expr_list     COMMA
+        ERR_POSTCOND COLON   err=expr_list
       RBRACE
     
     {
@@ -112,7 +113,15 @@ params:
 
 param_list:
     | /* empty */ { [] }
-    | id=VAR COLON t=typ COMMA rest=param_list  { (id,t)::rest }
+    | p=param rest=param_tail  { p :: rest }
+
+param_tail:
+  | /* empty */ { [] }
+  | COMMA p=param rest=param_tail { p :: rest }
+
+param:
+  | id=VAR COLON t=typ { (id, t) }
+
 
 
 returns:
@@ -120,23 +129,27 @@ returns:
 
 ret_list:
     | /* empty */ { [] }
-    | id=VAR COLON t=typ COMMA rest=ret_list   {(id,t)::rest}
+    | r=return rest=ret_tail   {r::rest}
 
+ret_tail:
+    | /* empty */ { [] }
+    | COMMA r=return rest=ret_tail   {r::rest}
+return:
+    | id=VAR COLON t=typ { (id, t) }
+
+(*TODO: unify SLA and QOS+*)
 sla:
-    | LBRACE
-        VAR COLON e1=expr COMMA
-        VAR COLON e2=expr
-      RBRACE
-      { {sla_latency = e1; sla_cost = e2} }
+    | OPEN_LIST assigns=separated_list(COMMA, assign) CLOSE_LIST  {assigns}
 
+assign:
+    | id=VAR COLON e=expr      {(id, e)}
 
 (* ---------- QoS ---------- *)
-qos_list:
-  | OPEN_LIST qs=qos_elems CLOSE_LIST {qs}
-
-qos_elems:
-  | /* empty */ { [] }
-  | e=expr COMMA rest=qos_elems    {(Latency e) :: rest}
+qos_constr:
+  | OPEN_LIST 
+        es=separated_list(COMMA, expr)
+    CLOSE_LIST
+    { es }
 
 
 (* ---------- EXPRESSIONS (prefix style) ---------- *)
@@ -144,25 +157,30 @@ expr_list:
     | OPEN_LIST es=exprs CLOSE_LIST { es }
 
 exprs:
-    | /* empty */ { [] }
-    | e=expr COMMA rest=exprs { e :: rest }
+  | /* empty */ { [] }
+  | e=expr rest=exprs_tail { e :: rest }
+
+exprs_tail:
+  | /* empty */ { [] }
+  | COMMA e=expr rest=exprs_tail { e :: rest }
 
 atom:
     | n=INT                         {EInt(n)}
     | b=BOOL                        {EBool(b)}
     | v=VAR                         {EVar(v)}
-
-ident:
-    | id=VAR                        {id}
+    | SLA                           {ESla}
 
 expr:
     | a=atom                        {a}
-    | id=ident OPEN_PAR args=exprs CLOSE_PAR           {EApp(id, args)}
+    | id=VAR OPEN_PAR args=exprs CLOSE_PAR           {EApp(id, args)}
+    | e=expr DOT field=VAR          {EField(e, field)}
     | e1=expr PLUS e2=expr          {EBinOp(Add,e1,e2)}
     | e1=expr MINUS e2=expr         {EBinOp(Sub,e1,e2)}
     | e1=expr TIMES e2=expr         {EBinOp(Mul,e1,e2)}
-    | e1=expr MINOR e2=expr         {EBinOp(Lt,e1,e2)}
-    | e1=expr MINOR_EQ e2=expr      {EBinOp(Le,e1,e2)}
+    | e1=expr LT e2=expr            {EBinOp(Lt,e1,e2)}
+    | e1=expr LE e2=expr            {EBinOp(Le,e1,e2)}
+    | e1=expr GT e2=expr            {EBinOp(Gt,e1,e2)}
+    | e1=expr GE e2=expr            {EBinOp(Ge,e1,e2)}
     | e1=expr AND e2=expr           {EBinOp(And,e1,e2)}
     | e1=expr ASSIGN e2=expr        {EBinOp(Eq,e1,e2)}
     | NOT e=expr                    {EUnOp(Not,e)}
