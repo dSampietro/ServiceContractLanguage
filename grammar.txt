@@ -1,0 +1,105 @@
+<prg> ::= { 
+            globals: <globals>,
+            functions: <functions>,
+            QoS: <qos_def>,
+            services: <services>
+          } EOF
+
+<globals> ::= [ <global_items> ]
+
+<global_items> ::= ε
+                 | <global_item>
+                 | <global_item>, <global_items>
+
+<global_item> ::= VAR: <typ>
+
+<functions> ::= [ <func_items> ]
+
+<func_items> ::= ε
+               | <func_item>
+               | <func_item>, <func_items>
+
+<func_item> ::= VAR: <fun_type>
+
+<fun_type> ::= <typ> -> <fun_type>
+             | <typ>
+
+<qos_def> ::= [ <qos_decls> ]
+
+<qos_decls> ::= ε
+              | <qos_decl>
+              | <qos_decl>, <qos_decls>
+
+<qos_decl> ::= VAR: <typ>
+
+
+
+<services> ::= [ <service_items> ]
+
+<service_items> ::= ε
+                  | <service>
+                  | <service>, <service_items>
+
+<service> ::= {
+                name: VAR,
+                params: <params>,
+                returns: <returns>,
+                SLA: <sla>,
+                precond: <expr_list>,
+                QoS: <qos_constr>,
+                ok_postcond: <expr_list>,
+                err_postcond: <expr_list>
+              }
+
+<params> ::= [ <param_items> ]
+
+<param_items> ::= ε
+                | <param>
+                | <param>, <param_items>
+
+<param> ::= VAR: <typ>
+
+<returns> ::= [ <return_items> ]
+
+<return_items> ::= ε
+                 | <return_item>
+                 | <return_item>, <return_items>
+
+<return_item> ::= VAR: <typ>
+
+<sla> ::= [ <assigns> ]
+
+<assigns> ::= ε
+            | <assign>
+            | <assign>, <assigns>
+
+<assign> ::= VAR: <expr>
+
+<qos_constr> ::= [ <exprs> ]
+
+<expr_list> ::= [ <exprs> ]
+
+<exprs> ::= ε
+          | <expr>
+          | <expr>, <exprs>
+
+<atom> ::= int
+         | bool
+         | VAR
+         | SLA
+
+<expr> ::= <atom>
+         | VAR (<exprs>)
+         | <expr> . VAR
+         | <expr> + <expr>
+         | <expr> - <expr>
+         | <expr> * <expr>
+         | <expr> < <expr>
+         | <expr> <= <expr>
+         | <expr> > <expr>
+         | <expr> >= <expr>
+         | <expr> & <expr>
+         | <expr> = <expr>
+         | !<expr>
+
+<typ> ::= VAR    
