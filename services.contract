@@ -15,17 +15,17 @@
 
     services: [
         {
-            name: "Auth",
+            name: Auth,
             params: [
                 userId: int,
                 password: int,
                 nonce: int
             ],
             returns: [token: int],
-            SLA: {
+            SLA: [
                 latency: n1,
                 cost: n2
-            },
+            ],
             precond: [
                 wellFormed(userId),
                 wellFormed(password),
@@ -44,24 +44,24 @@
                 token = token(userId, nonce)
             ],
             err-postcond: [
-                succ = False
-                token = err,
-            ],
+                succ = False,
+                token = err
+            ]
         },
 
         {
-            name: "Pay",
+            name: Pay,
             params: [
-                amt: int,
+                amt: int
             ],
             returns: [r: Outcome], 
-            SLA: {
+            SLA: [
                 latency: n3,
                 cost: n4
-            },
+            ],
 
             precond: [
-                amt > 0,
+                amt > 0
             ],
 
             QoS: [
@@ -71,26 +71,26 @@
 
             ok-postcond: [
                 succ = True,
-                r = ok,
+                r = ok
             ],
             err-postcond: [
-                succ = False
-                r = err,
-            ],
+                succ = False,
+                r = err
+            ]
         },
 
         {
-            name: "GetPrice",
+            name: GetPrice,
             params: [
                 productId: int
             ],
 
             returns: [price: int],
 
-            SLA: {
+            SLA: [
                 latency: n5,
                 cost: n6
-            },
+            ],
 
             precond: [
                 wellFormed(productId)
