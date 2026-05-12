@@ -36,8 +36,11 @@ let () =
   let lexbuf = Lexing.from_channel input_file in
   
   try
-    let _ast = (Lib.Parser.prg Lib.Lexer.read lexbuf) in
+    let ast = (Lib.Parser.prg Lib.Lexer.read lexbuf) in
     Printf.printf "Parse successful\n";
+    let fmt = Format.std_formatter in
+    Lib.Lang_pp.pp_program fmt ast;
+    Format.pp_print_flush fmt ();
     close_in input_file
   with
     | Lib.Parser.Error ->
