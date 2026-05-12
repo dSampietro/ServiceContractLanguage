@@ -1,5 +1,7 @@
 {
-    globals: [],
+    globals: [
+        MAX_ATTEMPTS: int
+    ],
 
     functions: [
         attempts: int -> int,
@@ -8,10 +10,15 @@
         PayFee: int -> int
     ],
 
-    QoS: [      
+    QoS: [
         latency: int, 
+        min_latency: int,
         cost: int
     ], 
+
+    policies: [
+        
+    ],
 
     services: [
         {
@@ -23,8 +30,8 @@
             ],
             returns: [token: int],
             SLA: [
-                latency: n1,
-                cost: n2,
+                latency: 100,
+                cost: 50,
                 trust: HIGH
             ],
             precond: [
@@ -42,7 +49,7 @@
                 succ = True,
                 verify(userId, password),
                 attempts(userId) = 0,
-                token = GetToken(userId, nonce)
+                token := GetToken(userId, nonce)
             ],
             err-postcond: [
                 succ = False,

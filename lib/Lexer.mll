@@ -37,8 +37,7 @@ rule read = parse
 | "globals"         {GLOBALS}
 | "functions"       {FUNCTIONS}  
 | "QoS"             {QOS}
-(*| "latency"         {LATENCY}
-| "cost"            {COST}*)
+| "policies"        {POLICIES}
 | "services"        {SERVICES}  
 | "name"            {NAME}
 | "params"          {PARAMS}
