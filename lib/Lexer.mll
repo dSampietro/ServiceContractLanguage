@@ -22,7 +22,7 @@ rule read = parse
 | ">="      {GE}
 | ">"       {GT}
 | "!"       {NOT}
-| "and"     {AND}
+| "||"      {OR}
 | "="       {EQ}
 | "("       {OPEN_PAR}
 | ")"       {CLOSE_PAR}

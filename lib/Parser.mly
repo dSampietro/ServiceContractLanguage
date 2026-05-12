@@ -4,7 +4,7 @@
 
 (* tokens *)
 %token COLON ARROW DOT EQ COMMA EOF 
-%token PLUS MINUS TIMES LE LT GE GT NOT AND
+%token PLUS MINUS TIMES LE LT GE GT NOT OR
 %token OPEN_PAR CLOSE_PAR OPEN_LIST CLOSE_LIST LBRACE RBRACE
 %token GLOBALS FUNCTIONS QOS SERVICES NAME PARAMS RETURNS SLA PRECOND OK_POSTCOND ERR_POSTCOND 
 
@@ -12,7 +12,7 @@
 %token <bool> BOOL
 %token <string> VAR
 
-%left AND
+%left OR
 %left EQ
 %left LT LE GT GE
 %left PLUS MINUS
@@ -147,8 +147,8 @@ expr:
     | e1=expr LE e2=expr            {EBinOp(Le,e1,e2)}
     | e1=expr GT e2=expr            {EBinOp(Gt,e1,e2)}
     | e1=expr GE e2=expr            {EBinOp(Ge,e1,e2)}
-    | e1=expr AND e2=expr           {EBinOp(And,e1,e2)}
-    | e1=expr EQ e2=expr        {EBinOp(Eq,e1,e2)}
+    | e1=expr OR e2=expr            {EBinOp(Or,e1,e2)}
+    | e1=expr EQ e2=expr            {EBinOp(Eq,e1,e2)}
     | NOT e=expr                    {EUnOp(Not,e)}
 
 

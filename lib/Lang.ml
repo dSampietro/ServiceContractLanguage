@@ -11,7 +11,7 @@ type typ =
 type binop =
     | Add | Sub | Mul | Div
     | Lt | Le | Gt | Ge | Eq | Neq
-    | And | Or
+    | Or
 
 type unop =
     | Not
