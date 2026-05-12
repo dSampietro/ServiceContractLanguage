@@ -4,7 +4,7 @@
     functions: [
         attempts: int -> int,
         AuthFee: int -> int,
-        token: int -> int -> int,
+        GetToken: int -> int -> int,
         PayFee: int -> int
     ],
 
@@ -24,7 +24,8 @@
             returns: [token: int],
             SLA: [
                 latency: n1,
-                cost: n2
+                cost: n2,
+                trust: HIGH
             ],
             precond: [
                 wellFormed(userId),
@@ -41,7 +42,7 @@
                 succ = True,
                 verify(userId, password),
                 attempts(userId) = 0,
-                token = token(userId, nonce)
+                token = GetToken(userId, nonce)
             ],
             err-postcond: [
                 succ = False,
@@ -89,7 +90,8 @@
 
             SLA: [
                 latency: n5,
-                cost: n6
+                cost: n6,
+                trust: LOW
             ],
 
             precond: [
