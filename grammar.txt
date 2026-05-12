@@ -5,40 +5,23 @@
             services: <services>
           } EOF
 
-<globals> ::= [ <global_items> ]
-
-<global_items> ::= ε
-                 | <global_item>
-                 | <global_item>, <global_items>
-
+<globals> ::= [ <global_item>* ]
 <global_item> ::= VAR: <typ>
 
-<functions> ::= [ <func_items> ]
 
-<func_items> ::= ε
-               | <func_item>
-               | <func_item>, <func_items>
-
+<functions> ::= [ <func_item>* ]
 <func_item> ::= VAR: <fun_type>
 
 <fun_type> ::= <typ> -> <fun_type>
              | <typ>
 
-<qos_def> ::= [ <qos_decls> ]
-
-<qos_decls> ::= ε
-              | <qos_decl>
-              | <qos_decl>, <qos_decls>
-
+<qos_def> ::= [ <qos_decl>* ]
 <qos_decl> ::= VAR: <typ>
 
 
 
-<services> ::= [ <service_items> ]
+<services> ::= [ <service_item>* ]
 
-<service_items> ::= ε
-                  | <service>
-                  | <service>, <service_items>
 
 <service> ::= {
                 name: VAR,
