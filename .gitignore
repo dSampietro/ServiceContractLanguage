@@ -5,3 +5,7 @@ Parser.ml
 
 *.cmi
 *.cmo
+ServiceConfig.opam
+make.sh
+_build/log
+.vscode/settings.json
