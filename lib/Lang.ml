@@ -16,6 +16,13 @@ type binop =
 type unop =
     | Not
 
+type aggrop =
+    | Sum
+    | Avg
+    | Min
+    | Max
+    | Sorted
+
 type ident = string
 
 type expr = 
@@ -26,18 +33,27 @@ type expr =
     | EField of expr * ident
     | EApp of ident * expr list
     | EBinOp of binop * expr * expr
-    | EUnOp of unop * expr    
+    | EUnOp of unop * expr
+    | EAgg of aggrop * ident  
 
 type global = ident * typ
 
+
+type policy_expr =
+  | PExpr of expr
+  | PAgg of aggrop * string
+  | PBinOp of binop * policy_expr * policy_expr
+  | PUnOp of unop * policy_expr
+
+type policy = 
+    | QosFieldOp of policy_expr
+    | Regex
+
+
+
+
 (* QoS *)
 type qos_def = (ident * typ) list
-
-(*type qos_attr =
-    | Latency of expr
-    | Cost of expr
-*)
-
 type qos_constraint = expr list
 
 (* SLA *)
@@ -74,6 +90,7 @@ type func_sig = {
 type program = {
     globals: global list;
     functions: func_sig list;
+    policies: policy list;
     qos: qos_def;
     services: service list;
 }

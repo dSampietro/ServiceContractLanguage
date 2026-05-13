@@ -5,8 +5,9 @@
 (* tokens *)
 %token COLON ARROW DOT EQ COMMA EOF 
 %token PLUS MINUS TIMES LE LT GE GT NOT OR
+%token SUM AVG MIN MAX SORTED
 %token OPEN_PAR CLOSE_PAR OPEN_LIST CLOSE_LIST LBRACE RBRACE
-%token GLOBALS FUNCTIONS QOS SERVICES NAME PARAMS RETURNS SLA PRECOND OK_POSTCOND ERR_POSTCOND 
+%token GLOBALS FUNCTIONS QOS POLICIES SERVICES NAME PARAMS RETURNS SLA PRECOND OK_POSTCOND ERR_POSTCOND 
 
 %token <int> INT
 %token <bool> BOOL
@@ -29,11 +30,12 @@ prg:
         GLOBALS   COLON  g=globals     COMMA
         FUNCTIONS COLON  f=functions   COMMA
         QOS       COLON  qos=qos_def   COMMA
+        POLICIES  COLON  p=policies    COMMA
         SERVICES  COLON  s=services  
       RBRACE EOF
 
     {
-        {globals = g; functions = f; qos = qos; services = s}
+        {globals = g; functions = f; qos = qos; policies = p; services = s}
     }
 
 (* ---------- GLOBALS ---------- *)
@@ -62,6 +64,26 @@ qos_def:
 qos_decl:
     | id=VAR COLON t=typ    {(id, t)}
 
+
+(* ---------- Policies ---------- *)
+policies:
+    | OPEN_LIST ps=separated_list(COMMA, policy) CLOSE_LIST {ps}
+
+policy:
+    | e=policy_expr {QosFieldOp(e)}
+    (*| Regex(e=expr) {Regex(e)}*)
+
+
+policy_expr:
+    | e=atom                                {PExpr(e)}
+    | a=agg OPEN_PAR id=VAR CLOSE_PAR       {PAgg(a, id)}
+    | e1=policy_expr PLUS e2=policy_expr    {PBinOp(Add, e1, e2)}
+    | e1=policy_expr LT e2=policy_expr      {PBinOp(Lt, e1, e2)}
+    | e1=policy_expr LE e2=policy_expr      {PBinOp(Le, e1, e2)}
+    | e1=policy_expr GT e2=policy_expr      {PBinOp(Gt, e1, e2)}
+    | e1=policy_expr GE e2=policy_expr      {PBinOp(Ge, e1, e2)}
+    | NOT e=policy_expr                     {PUnOp(Not, e) }
+    | OPEN_PAR e=policy_expr CLOSE_PAR      {e }
 
 (* ---------- SERVICES ---------- *)
 services:
@@ -129,6 +151,12 @@ expr_list:
 exprs:
   | es=separated_list(COMMA, expr) { es }
 
+agg: 
+    | SUM       {Sum}
+    | AVG       {Avg}
+    | MIN       {Min}
+    | MAX       {Max}
+    | SORTED    {Sorted}
 
 atom:
     | n=INT                         {EInt(n)}
@@ -137,19 +165,22 @@ atom:
     | SLA                           {ESla}
 
 expr:
-    | a=atom                        {a}
-    | id=VAR OPEN_PAR args=exprs CLOSE_PAR           {EApp(id, args)}
-    | e=expr DOT field=VAR          {EField(e, field)}
-    | e1=expr PLUS e2=expr          {EBinOp(Add,e1,e2)}
-    | e1=expr MINUS e2=expr         {EBinOp(Sub,e1,e2)}
-    | e1=expr TIMES e2=expr         {EBinOp(Mul,e1,e2)}
-    | e1=expr LT e2=expr            {EBinOp(Lt,e1,e2)}
-    | e1=expr LE e2=expr            {EBinOp(Le,e1,e2)}
-    | e1=expr GT e2=expr            {EBinOp(Gt,e1,e2)}
-    | e1=expr GE e2=expr            {EBinOp(Ge,e1,e2)}
-    | e1=expr OR e2=expr            {EBinOp(Or,e1,e2)}
-    | e1=expr EQ e2=expr            {EBinOp(Eq,e1,e2)}
-    | NOT e=expr                    {EUnOp(Not,e)}
+    | a=atom                                {a}
+    | id=VAR OPEN_PAR args=exprs CLOSE_PAR  {EApp(id, args)}
+    | e=expr DOT field=VAR                  {EField(e, field)}
+    | e1=expr PLUS e2=expr                  {EBinOp(Add,e1,e2)}
+    | e1=expr MINUS e2=expr                 {EBinOp(Sub,e1,e2)}
+    | e1=expr TIMES e2=expr                 {EBinOp(Mul,e1,e2)}
+    | NOT e=expr                            {EUnOp(Not,e)}
+    | r=rel_expr                            {r}
+
+rel_expr: 
+    | e1=expr LT e2=expr                    {EBinOp(Lt,e1,e2)}
+    | e1=expr LE e2=expr                    {EBinOp(Le,e1,e2)}
+    | e1=expr GT e2=expr                    {EBinOp(Gt,e1,e2)}
+    | e1=expr GE e2=expr                    {EBinOp(Ge,e1,e2)}
+    | e1=expr OR e2=expr                    {EBinOp(Or,e1,e2)}
+    | e1=expr EQ e2=expr                    {EBinOp(Eq,e1,e2)}
 
 
 typ:

@@ -27,6 +27,12 @@ rule read = parse
 | "("       {OPEN_PAR}
 | ")"       {CLOSE_PAR}
 
+|"sum"      {SUM}
+| "avg"     {AVG}
+| "min"     {MIN}
+| "max"     {MAX}
+| "sorted"  {SORTED}
+
 | "["       {OPEN_LIST}
 | "]"       {CLOSE_LIST}
 
