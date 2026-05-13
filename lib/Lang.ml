@@ -34,7 +34,6 @@ type expr =
     | EApp of ident * expr list
     | EBinOp of binop * expr * expr
     | EUnOp of unop * expr
-    | EAgg of aggrop * ident  
 
 type global = ident * typ
 
@@ -45,9 +44,15 @@ type policy_expr =
   | PBinOp of binop * policy_expr * policy_expr
   | PUnOp of unop * policy_expr
 
+type regex =
+    | RService of ident
+    | RConcat of regex * regex
+    | RChoice of regex * regex
+    | RStar of regex
+
 type policy = 
     | QosFieldOp of policy_expr
-    | Regex
+    | Regex of regex
 
 
 
@@ -94,3 +99,17 @@ type program = {
     qos: qos_def;
     services: service list;
 }
+
+
+(* TODO: enforce invariants for contracts: 
+- no duplicate service names
+- regex use services that are defined in the program
+- policies only use variables/fields defined in the program
+- QoS constraints for each field of QoS vector
+*)
+
+let validate (p: program) : unit =
+  let service_names = List.map (fun s -> s.name) p.services in
+  let unique_service_names = List.sort_uniq String.compare service_names in
+  if List.length service_names <> List.length unique_service_names then
+    failwith "Duplicate service names found in the program"

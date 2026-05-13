@@ -70,8 +70,8 @@ policies:
     | OPEN_LIST ps=separated_list(COMMA, policy) CLOSE_LIST {ps}
 
 policy:
-    | e=policy_expr {QosFieldOp(e)}
-    (*| Regex(e=expr) {Regex(e)}*)
+    | e=policy_expr     {QosFieldOp(e)}
+    | r=regex           {Regex(r)}
 
 
 policy_expr:
@@ -83,7 +83,15 @@ policy_expr:
     | e1=policy_expr GT e2=policy_expr      {PBinOp(Gt, e1, e2)}
     | e1=policy_expr GE e2=policy_expr      {PBinOp(Ge, e1, e2)}
     | NOT e=policy_expr                     {PUnOp(Not, e) }
-    | OPEN_PAR e=policy_expr CLOSE_PAR      {e }
+    | OPEN_PAR e=policy_expr CLOSE_PAR      {e}
+
+
+regex:
+    | OPEN_PAR e=regex CLOSE_PAR            {e}
+    | s=VAR                                 {RService(s)}
+    | r1=regex PLUS r2=regex                {RChoice(r1, r2)}
+    | r1=regex DOT r2=regex                 {RConcat(r1, r2)}
+    | r=regex TIMES                         {RStar(r)}
 
 (* ---------- SERVICES ---------- *)
 services:
