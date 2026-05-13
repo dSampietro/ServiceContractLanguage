@@ -37,6 +37,13 @@ let pp_binop fmt = function
 let pp_unop fmt = function
   | Lang.Not -> fprintf fmt "!"
 
+let pp_aggrop fmt = function
+  | Lang.Sum    -> fprintf fmt "sum"
+  | Lang.Avg    -> fprintf fmt "avg"
+  | Lang.Min    -> fprintf fmt "min"
+  | Lang.Max    -> fprintf fmt "max"
+  | Lang.Sorted -> fprintf fmt "sorted"
+
 let rec pp_expr fmt = function
   | Lang.EInt i -> fprintf fmt "%d" i
   | Lang.EBool b -> fprintf fmt "%b" b
@@ -56,7 +63,6 @@ let rec pp_expr fmt = function
       fprintf fmt ")"
   | Lang.EUnOp (op, e) ->
       fprintf fmt "(%a%a)" pp_unop op pp_expr e
-  | Lang.EAgg (_agg, _id) -> printf "TODO"
 
 and pp_expr_list fmt = function
   | [] -> ()
@@ -94,6 +100,53 @@ let pp_funtype =
 let pp_func_sig fmt f =
   fprintf fmt "function %s : %a" f.fname pp_funtype f.ty
 
+let rec pp_policy_expr fmt = function
+  | Lang.PExpr e ->
+      pp_expr fmt e
+
+  | Lang.PAgg (agg, id) ->
+      fprintf fmt "%a(%s)" pp_aggrop agg id
+
+  | Lang.PBinOp (op, a, b) ->
+      fprintf fmt "(";
+      pp_policy_expr fmt a;
+      fprintf fmt " %a " pp_binop op;
+      pp_policy_expr fmt b;
+      fprintf fmt ")"
+
+  | Lang.PUnOp (op, e) ->
+      fprintf fmt "(%a%a)" pp_unop op pp_policy_expr e
+
+let rec pp_regex fmt = function
+  | Lang.RService s ->
+      fprintf fmt "%s" s
+
+  | Lang.RConcat (r1, r2) ->
+      fprintf fmt "(";
+      pp_regex fmt r1;
+      fprintf fmt " . ";
+      pp_regex fmt r2;
+      fprintf fmt ")"
+
+  | Lang.RChoice (r1, r2) ->
+      fprintf fmt "(";
+      pp_regex fmt r1;
+      fprintf fmt " + ";
+      pp_regex fmt r2;
+      fprintf fmt ")"
+
+  | Lang.RStar r ->
+      fprintf fmt "(";
+      pp_regex fmt r;
+      fprintf fmt ")*"
+
+let pp_policy fmt = function
+  | Lang.QosFieldOp p ->
+      pp_policy_expr fmt p
+
+  | Lang.Regex r ->
+      pp_regex fmt r
+    
 let pp_service fmt s =
   fprintf fmt "service %s {\n" s.name;
   fprintf fmt "  params:\n";
@@ -121,6 +174,9 @@ let pp_program fmt p =
 
   fprintf fmt "\nqos:\n";
   List.iter (fun q -> fprintf fmt "  %a\n" pp_qos_def q) p.qos;
+
+  fprintf fmt "\npolicies:\n";
+  List.iter (fun p -> fprintf fmt "  %a\n" pp_policy p) p.policies;
 
   fprintf fmt "\nservices:\n";
   List.iter (fun s -> fprintf fmt "%a\n" pp_service s) p.services
