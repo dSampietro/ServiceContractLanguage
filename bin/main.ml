@@ -1,22 +1,14 @@
 (* main.ml *)
 
-(*
-open ServiceConfig
-let parse_with_error lexbuf =
-  try
-    Parser.prg Lexer.read lexbuf
-  with
-  | Lexer.LexingError msg ->
-      let pos = lexbuf.lex_curr_p in
-      Printf.eprintf "Lexing error at line %d, column %d: %s\n"
-        pos.pos_lnum (pos.pos_cnum - pos.pos_bol) msg;
-      exit 1
-  | MfParser.Error ->
-      let pos = lexbuf.lex_curr_p in
-      Printf.eprintf "Parse error at line %d, column %d\n"
-        pos.pos_lnum (pos.pos_cnum - pos.pos_bol);
-      exit 1
-*)
+let previous_token = ref ""
+let current_token = ref ""
+
+let lexer_with_history lexbuf =
+  previous_token := !current_token;
+  let tok = Lib.Lexer.read lexbuf in
+  current_token := Lexing.lexeme lexbuf;
+  tok
+
 
 let () =
   Printf.printf "ServiceConfig Parser - OCaml version\n";
@@ -36,7 +28,7 @@ let () =
   let lexbuf = Lexing.from_channel input_file in
   
   try
-    let ast = (Lib.Parser.prg Lib.Lexer.read lexbuf) in
+    let ast = (Lib.Parser.prg lexer_with_history lexbuf) in
     Printf.printf "Parse successful\n";
     let fmt = Format.std_formatter in
     Lib.Lang_pp.pp_program fmt ast;
@@ -46,11 +38,15 @@ let () =
     | Lib.Parser.Error ->
         close_in input_file;
         let pos = lexbuf.lex_curr_p in
-        let token = Lexing.lexeme lexbuf in
-        Printf.eprintf "Parse error at line %d, column %d: unexpected token '%s'\n"
+        let _token = Lexing.lexeme lexbuf in
+        Printf.eprintf 
+          "Parse error at line %d, column %d\n\
+           previous token: '%s'\n\
+           current token: '%s'\n"
           pos.pos_lnum
           (pos.pos_cnum - pos.pos_bol + 1)
-          token;
+          !previous_token
+          !current_token;
         exit 1
 
     | exn -> close_in input_file; Printf.eprintf "Unexpected error: %s\n" (Printexc.to_string exn);
