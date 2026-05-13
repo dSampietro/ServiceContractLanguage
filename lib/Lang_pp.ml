@@ -56,6 +56,7 @@ let rec pp_expr fmt = function
       fprintf fmt ")"
   | Lang.EUnOp (op, e) ->
       fprintf fmt "(%a%a)" pp_unop op pp_expr e
+  | Lang.EAgg (_agg, _id) -> printf "TODO"
 
 and pp_expr_list fmt = function
   | [] -> ()
